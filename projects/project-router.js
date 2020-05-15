@@ -19,8 +19,8 @@ router.post('/', (req, res) => {
     const projectData = req.body;
   
     DB.newProject(projectData)
-    .then(project => {
-      res.status(201).json(projectData);
+    .then(newProject => {
+      res.status(201).json(newProject);
     })
     .catch (err => {
       console.log(err)  
@@ -31,7 +31,7 @@ router.post('/', (req, res) => {
 router.get('/:id/resources', (req, res) => {
     const {id} = req.params;
 
-    DB.findResourceById(id)
+    DB.findResourcesById(id)
     .then(resources => {
       res.json(resources);
     })
@@ -45,11 +45,12 @@ router.post('/:id/resources', (req, res) => {
     const {id} = req.params;
     const resourceData = req.body;
   
-    DB.newResources(resourceData)
+    DB.newResource(resourceData, id)
     .then(resource => {
       res.status(201).json(resource);
     })
     .catch (err => {
+      console.log(err);
       res.status(500).json({ message: 'Failed to create new resource' });
     });
 });
@@ -57,7 +58,7 @@ router.post('/:id/resources', (req, res) => {
 router.get('/:id/tasks', (req, res) => {
     const {id} = req.params;
 
-    DB.findTasks()
+    DB.findTaskById(id)
     .then(tasks => {
       res.json(tasks);
     })
@@ -71,7 +72,7 @@ router.post('/:id/tasks', (req, res) => {
     const {id} = req.params;
     const taskData = req.body;
   
-    DB.newTask(taskData)
+    DB.newTask(taskData, id)
     .then(task => {
       res.status(201).json(task);
     })

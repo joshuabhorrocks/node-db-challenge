@@ -4,9 +4,9 @@ module.exports = {
     allProjects,
     findProjectById,
     newProject,
-    findResources,
-    findResourceById,
-    newResources,
+    allResources,
+    findResourcesById,
+    newResource,
     findTasks,
     findTaskById,
     newTask
@@ -20,52 +20,50 @@ function findProjectById(id) {
     return db("projects").where("id", id).first();
 }
 
-function newProject(project) {
-    return db("projects")
-    .insert(project, "id")
-    .then(ids => {
-        db("projects").where({id: ids[0]})
-    })
+function newProject(projectData) {
+    return db("projects as p")
+    .insert(projectData)
+    // .join("project_resources as pr", "pr.id", "=", "p.id")
+    // .join("project_tasks as pt", "pt.id", "=", "p.id")
 }
 
-function findResources() {
+function allResources(){
     return db("resources");
 }
 
-function findResourceById(id) {
+function findResourcesById(id) {
     return db("resources as r")
-    .join("project_resources as pr", "pr.project_id", "=", "r.id")
-    .join("projects as p", "p.id", "=", "pr.id")
-    .where("r.id", "=", id)
+    .join("project_resources as pr", "pr.resource_id", "=", "r.id")
+    .join("projects as p", "pr.project_id", "=", "p.id")
+    .select("r.id", "r.name", "r.description")
+    .where("p.id", "=", id)
 }
 
-function newResources(resource, id) {
+function newResource(resource, id) {
     return db("resources as r")
-    .join("project_resources as pr", "pr.project_id", "=", "r.id")
-    .join("projects as p", "p.id", "=", "pr.id")
-    .insert(resource, id)
-    .then(ids => {
-        return findProjectById(ids[0]);
-    })
-    .where("r.id", "=", id)
+    .join("project_resources as pr", "pr.resource_id", "=", "r.id")
+    .join("projects as p", "pr.project_id", "=", "p.id")
+    .insert(resource)
+    .where("p.id", "=", id)
 }
 
 function findTasks(id) {
     return db("tasks as t")
-    .join("project_tasks as pt", "pt.project_id", "=", "t.id")
-    .join("projects as p", "p.id", "=", "pt.id")
-    .select("p.name", "p.description", "t.id", "t.description", "t.notes", "t.completed")
+    .join("projects as p", "t.id", "=", "p.id")
+    .select("t.id", "t.description", "t.notes", "t.completed", "p.name as project_name", "p.description as project_description,", "p.id as project_id")
+    .where("p.id", id);
+}
+
+function findTaskById() {
+    return db("tasks as t")
+    .join("projects as p", "t.id", "=", "p.id")
+    .select("t.id", "t.description", "t.notes", "t.completed", "p.name as project_name", "p.description as project_description,", "p.id as project_id")
+}
+
+function newTask(task, id) {
+    return db("tasks as t")
+    .join("project_tasks as tr", "tr.project_id", "=", "t.id")
+    .join("projects as p", "p.id", "=", "tr.id")
+    .insert(task)
     .where("t.id", "=", id)
-}
-
-function findTaskById(id) {
-    return db("tasks").where("id", id).first();
-}
-
-function newTask(task) {
-    return db("tasks")
-      .insert(task, "id")
-      .then(ids => {
-        return findTaskById(ids[0]);
-    });
 }
